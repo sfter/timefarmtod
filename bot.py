@@ -62,52 +62,55 @@ class TimeFarm:
         headers["Authorization"] = f"Bearer {token}"
         res = self.http(url_task, headers)
         for task in res.json():
-            task_id = task["id"]
-            task_title = task["title"]
-            task_type = task["type"]
-            if task_type == "TELEGRAM":
-                continue
-            if "submission" in task.keys():
-                status = task["submission"]["status"]
-                if status == "CLAIMED":
-                    self.log(f"{kuning}already complete {task_title}")
+            try:
+                task_id = task["id"]
+                task_title = task["title"]
+                task_type = task["type"]
+                if task_type == "TELEGRAM":
                     continue
-
-                if status == "COMPLETED":
-                    url_claim = (
-                        f"https://tg-bot-tap.laborx.io/api/v1/tasks/{task_id}/claims"
-                    )
-                    data = json.dumps({})
-                    headers["Content-Length"] = str(len(data))
-                    res = self.http(url_claim, headers, data)
-                    if res.text.lower() == "ok":
-                        self.log(f"{hijau}success claim reward {task_title}")
+                if "submission" in task.keys():
+                    status = task["submission"]["status"]
+                    if status == "CLAIMED":
+                        self.log(f"{kuning}already complete {task_title}")
                         continue
 
-            url_submit = (
-                f"https://tg-bot-tap.laborx.io/api/v1/tasks/{task_id}/submissions"
-            )
-            data = json.dumps({})
-            headers["Content-Length"] = str(len(data))
-            res = self.http(url_submit, headers, data)
-            if res.text.lower() != "ok":
-                self.log(f"{merah}failed send submission {task_title}")
-                continue
+                    if status == "COMPLETED":
+                        url_claim = (
+                            f"https://tg-bot-tap.laborx.io/api/v1/tasks/{task_id}/claims"
+                        )
+                        data = json.dumps({})
+                        headers["Content-Length"] = str(len(data))
+                        res = self.http(url_claim, headers, data)
+                        if res.text.lower() == "ok":
+                            self.log(f"{hijau}success claim reward {task_title}")
+                            continue
 
-            url_task = f"https://tg-bot-tap.laborx.io/api/v1/tasks/{task_id}"
-            res = self.http(url_task, headers)
-            status = res.json()["submission"]["status"]
-            if status != "COMPLETED":
-                self.log(f"{merah}task is not completed !")
-                continue
+                url_submit = (
+                    f"https://tg-bot-tap.laborx.io/api/v1/tasks/{task_id}/submissions"
+                )
+                data = json.dumps({})
+                headers["Content-Length"] = str(len(data))
+                res = self.http(url_submit, headers, data)
+                if res.text.lower() != "ok":
+                    self.log(f"{merah}failed send submission {task_title}")
+                    continue
 
-            url_claim = f"https://tg-bot-tap.laborx.io/api/v1/tasks/{task_id}/claims"
-            data = json.dumps({})
-            headers["Content-Length"] = str(len(data))
-            res = self.http(url_claim, headers, data)
-            if res.text.lower() == "ok":
-                self.log(f"{hijau}success claim reward {task_title}")
-                continue
+                url_task = f"https://tg-bot-tap.laborx.io/api/v1/tasks/{task_id}"
+                res = self.http(url_task, headers)
+                status = res.json()["submission"]["status"]
+                if status != "COMPLETED":
+                    self.log(f"{merah}task is not completed !")
+                    continue
+
+                url_claim = f"https://tg-bot-tap.laborx.io/api/v1/tasks/{task_id}/claims"
+                data = json.dumps({})
+                headers["Content-Length"] = str(len(data))
+                res = self.http(url_claim, headers, data)
+                if res.text.lower() == "ok":
+                    self.log(f"{hijau}success claim reward {task_title}")
+                    continue
+            except KeyError:
+                print("KeyError: 'request blum json has error")
 
     def get_farming(self, token):
         url = "https://tg-bot-tap.laborx.io/api/v1/farming/info"
