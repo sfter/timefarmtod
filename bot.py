@@ -237,45 +237,48 @@ class TimeFarm:
         auto_upgrade = config["auto_upgrade"]
         auto_task = config["auto_task"]
         while True:
-            list_countdown = []
-            datas = open("data.txt", "r").read().splitlines()
-            tokens = json.loads(open("tokens.json", "r").read())
-            if len(datas) <= 0:
-                self.log(f"{kuning}please add data account in data.txt")
-                sys.exit()
-            self.log(f'{hijau}account detected : {putih}{len(datas)}')
-            print(self.line)
-            for data in datas:
-                parser = self.marin_kitagawa(data)
-                user = json.loads(parser["user"])
-                userid = str(user["id"])
-                if userid not in tokens.keys():
-                    user_ua = self.get_ua()
+            try:
+                list_countdown = []
+                datas = open("data.txt", "r").read().splitlines()
+                tokens = json.loads(open("tokens.json", "r").read())
+                if len(datas) <= 0:
+                    self.log(f"{kuning}please add data account in data.txt")
+                    sys.exit()
+                self.log(f'{hijau}account detected : {putih}{len(datas)}')
+                print(self.line)
+                for data in datas:
+                    parser = self.marin_kitagawa(data)
+                    user = json.loads(parser["user"])
+                    userid = str(user["id"])
+                    if userid not in tokens.keys():
+                        user_ua = self.get_ua()
+                        self.headers["User-Agent"] = user_ua
+                        user_token = self.get_token(data)
+                        if user_token is False:
+                            continue
+                        tokens[userid] = {}
+                        tokens[userid]["ua"] = user_ua
+                        open("tokens.json", "w").write(
+                            json.dumps(tokens, indent=4))
+                    user_ua = tokens[userid]["ua"]
                     self.headers["User-Agent"] = user_ua
+                    self.log(f"{hijau}login as : {putih}{user['first_name']}")
                     user_token = self.get_token(data)
                     if user_token is False:
                         continue
-                    tokens[userid] = {}
-                    tokens[userid]["ua"] = user_ua
-                    open("tokens.json", "w").write(
-                        json.dumps(tokens, indent=4))
-                user_ua = tokens[userid]["ua"]
-                self.headers["User-Agent"] = user_ua
-                self.log(f"{hijau}login as : {putih}{user['first_name']}")
-                user_token = self.get_token(data)
-                if user_token is False:
-                    continue
-                if auto_task:
-                    self.get_task(user_token)
-                curse = self.get_farming(user_token)
-                if auto_upgrade:
-                    self.upgrade_level(user_token)
-                list_countdown.append(curse)
-                print(self.line)
-                self.countdown(10)
+                    if auto_task:
+                        self.get_task(user_token)
+                    curse = self.get_farming(user_token)
+                    if auto_upgrade:
+                        self.upgrade_level(user_token)
+                    list_countdown.append(curse)
+                    print(self.line)
+                    self.countdown(10)
 
-            min_countdown = min(list_countdown)
-            self.countdown(int(min_countdown))
+                min_countdown = min(list_countdown)
+                self.countdown(int(min_countdown))
+            except BaseException as e:
+                print(f"An error occurred: {e}")
 
     def countdown(self, t):
         while t:
