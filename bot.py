@@ -277,6 +277,8 @@ class TimeFarm:
 
                 min_countdown = min(list_countdown)
                 self.countdown(int(min_countdown))
+            except KeyboardInterrupt:
+                sys.exit()
             except BaseException as e:
                 print(f"An error occurred: {e}")
 
